@@ -22,29 +22,29 @@ export class CourseService {
   ) {}
 
   /**
-   * Pure functions
-   */
-
-  /**
-   * Curried function to hydrate the course with the trainer and the learners
-   */
-  private hydrateCourse = curry(
-    (
-      course: CourseTypePartial,
-      trainer: TrainerType,
-      learners: LearnerType[],
-    ): CourseTypeHydrated => {
-      return {
-        ...course,
-        trainer,
-        learners,
-      };
-    },
-  );
-
-  /**
    * Impure functions
    */
+
+  /**
+   * Get a course from the lepaya API and resolve the nested fields
+   * @param id - id of the course
+   * @returns
+   */
+  getCourse(id: string): RX.Observable<AxiosResponse<CourseTypeHydrated>> {
+    return this.httpService
+      .get(`${this.configService.apiBaseUrl}/courses/${id}`)
+      .pipe(axFn.getFirstData(), RX.mergeMap(this.resolveFields));
+  }
+
+  /**
+   *
+   * @returns the list of all the available courses without the resolved fields
+   */
+  getCourses(): RX.Observable<AxiosResponse<CourseTypePartial[]>> {
+    return this.httpService
+      .get(`${this.configService.apiBaseUrl}/courses`)
+      .pipe(axFn.getData());
+  }
 
   /**
    * It retrieves the information of all the learners
@@ -76,23 +76,23 @@ export class CourseService {
   };
 
   /**
-   * Get a course from the lepaya API and resolve the nested fields
-   * @param id - id of the course
-   * @returns
+   * Pure functions
    */
-  getCourse(id: string): RX.Observable<AxiosResponse<CourseTypeHydrated>> {
-    return this.httpService
-      .get(`${this.configService.apiBaseUrl}/courses/${id}`)
-      .pipe(axFn.getFirstData(), RX.mergeMap(this.resolveFields));
-  }
 
   /**
-   *
-   * @returns the list of all the available courses without the resolved fields
+   * Curried function to hydrate the course with the trainer and the learners
    */
-  getCourses(): RX.Observable<AxiosResponse<CourseTypePartial[]>> {
-    return this.httpService
-      .get(`${this.configService.apiBaseUrl}/courses`)
-      .pipe(axFn.getData());
-  }
+  private hydrateCourse = curry(
+    (
+      course: CourseTypePartial,
+      trainer: TrainerType,
+      learners: LearnerType[],
+    ): CourseTypeHydrated => {
+      return {
+        ...course,
+        trainer,
+        learners,
+      };
+    },
+  );
 }
